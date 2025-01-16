@@ -1,8 +1,8 @@
-# rs2know
+# pj
 
 ## 簡介
 
-**rs2know** 是一款用於分析 Rust 程式碼並進行 AI 分析的命令列工具。它能夠掃描指定的 Rust 專案，統計程式碼行數、註解行數、空白行數等，並利用 OpenAI 或其他 GPT 服務對程式碼進行深入分析，生成詳細的分析報告。
+**pj** 是一款用於分析 Rust 程式碼並進行 AI 分析的命令列工具。它能夠掃描指定的 Rust 專案，統計程式碼行數、註解行數、空白行數等，並利用 OpenAI 或其他 GPT 服務對程式碼進行深入分析，生成詳細的分析報告。
 
 ## 特色功能
 
@@ -22,7 +22,7 @@
 ### 使用 Cargo 安裝
 
 ```bash
-cargo install --git https://github.com/jeromeleong/rs2know
+cargo install --git https://github.com/jeromeleong/pj
 ```
 
 ### 從源碼編譯
@@ -30,8 +30,8 @@ cargo install --git https://github.com/jeromeleong/rs2know
 1. 克隆倉庫：
 
     ```bash
-    git clone https://github.com/yourusername/rs2know.git
-    cd rs2know
+    git clone https://github.com/yourusername/pj.git
+    cd pj
     ```
 
 2. 編譯專案：
@@ -40,27 +40,27 @@ cargo install --git https://github.com/jeromeleong/rs2know
     cargo build --release
     ```
 
-3. 可執行檔位於 `target/release/rs2know`。
+3. 可執行檔位於 `target/release/pj`。
 
 ## 快速開始
 
-安裝完成後，即可使用 `rs2know` 來分析您的 Rust 專案。
+安裝完成後，即可使用 `pj` 來分析您的 Rust 專案。
 
 ### 基本用法
 
 分析一個 Rust 專案：
 ```bash
-rs2know --path /path/to/your/rust/project
+pj --path /path/to/your/rust/project
 ```
 
 更新現有的 JSON 報告（只分析修改過的檔案）：
 ```bash
-rs2know update --report report.json --path /path/to/project
+pj update --report report.json --path /path/to/project
 ```
 
 從 JSON 生成 Markdown 報告：
 ```bash
-rs2know generate-md --report report.json --output report.md
+pj generate-md --report report.json --output report.md
 ```
 
 ### 常用選項
@@ -78,17 +78,17 @@ rs2know generate-md --report report.json --output report.md
 
 - **update**：更新現有的 JSON 報告
   ```bash
-  rs2know update --report report.json --path /path/to/project
+  pj update --report report.json --path /path/to/project
   ```
 
 - **generate-md**：從 JSON 生成 Markdown 報告
   ```bash
-  rs2know generate-md --report report.json --output report.md
+  pj generate-md --report report.json --output report.md
   ```
 
 ## 配置詳情
 
-`rs2know` 支援多種配置選項，以滿足不同的使用需求。以下是主要配置選項的說明：
+`pj` 支援多種配置選項，以滿足不同的使用需求。以下是主要配置選項的說明：
 
 | 選項         | 簡介                                               | 預設值                          |
 | ------------ | -------------------------------------------------- | ------------------------------- |
@@ -103,7 +103,7 @@ rs2know generate-md --report report.json --output report.md
 
 ## API 文件
 
-**rs2know** 主要通過 OpenAI 的 GPT API 進行程式碼分析。以下是相關的 API 配置說明：
+**pj** 主要通過 OpenAI 的 GPT API 進行程式碼分析。以下是相關的 API 配置說明：
 
 ### 配置 API
 
@@ -112,7 +112,7 @@ rs2know generate-md --report report.json --output report.md
 
 ### 請求格式
 
-`rs2know` 會構建一個 JSON 請求，包含要分析的程式碼內容及指令。以下是請求的基本結構：
+`pj` 會構建一個 JSON 請求，包含要分析的程式碼內容及指令。以下是請求的基本結構：
 
 ```json
 {
@@ -172,7 +172,7 @@ Markdown 報告以易讀的格式呈現 JSON 報告的內容，包含：
 使用 `--skip-ai` 選項即可跳過 AI 分析：
 
 ```bash
-rs2know --path ./my_rust_project --skip-ai
+pj --path ./my_rust_project --skip-ai
 ```
 
 ### 報告生成失敗，如何處理？
@@ -189,7 +189,7 @@ rs2know --path ./my_rust_project --skip-ai
 使用 `update` 子命令，只分析修改過的檔案：
 
 ```bash
-rs2know update --report report.json --path ./my_rust_project
+pj update --report report.json --path ./my_rust_project
 ```
 
 ## 環境變數

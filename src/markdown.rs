@@ -3,10 +3,12 @@ use anyhow::Result;
 use std::collections::HashMap;
 use std::path::Path;
 use tracing::info;
+
 pub async fn generate_markdown_report(
     analyses: Option<Vec<FileAnalysis>>,
     project_summary: Option<ProjectSummary>,
     output_path: &str,
+    global_output: &Option<String>,
 ) -> Result<()> {
     let mut md_content = String::new();
     md_content.push_str("# Rust 程式碼分析報告\n\n");
@@ -150,24 +152,39 @@ pub async fn generate_markdown_report(
             }
         }
     }
+    // 決定最終輸出路徑
+    let final_output = if let Some(out) = global_output {
+        out.clone()
+    } else {
+        output_path.to_string()
+    };
+
     // Write to file
-    std::fs::write(output_path, md_content)?;
-    info!("Markdown 報告已生成並寫入 {}", output_path);
+    std::fs::write(&final_output, md_content)?;
+    info!("Markdown 報告已生成並寫入 {}", final_output);
     Ok(())
 }
-pub async fn generate_md_from_json(report_path: &str, output_path: Option<&str>) -> Result<()> {
+
+pub async fn generate_md_from_json(
+    report_path: &str,
+    output_path: Option<&str>,
+    global_output: &Option<String>,
+) -> Result<()> {
     // 讀取 JSON 報告
     let report_content = std::fs::read_to_string(report_path)?;
     let project_analysis: ProjectAnalysis = serde_json::from_str(&report_content)?;
+
     // 決定輸出路徑
     let output = match output_path {
         Some(path) => path.to_string(),
         None => "analysis_report.md".to_string(),
     };
+
     generate_markdown_report(
         Some(project_analysis.file_analyses),
         Some(project_analysis.summary),
         &output,
+        global_output,
     )
     .await
 }

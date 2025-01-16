@@ -13,9 +13,11 @@ pub struct Config {
     pub api_key: String,
     pub model: String,
     #[serde(default)]
-    pub output: Option<serde_json::Value>,
+    pub generated: Option<serde_json::Value>,
     #[serde(skip)]
     pub last_analysis: Option<String>,
+    #[serde(default)]
+    pub output: Option<String>,
 }
 impl Default for Config {
     fn default() -> Self {
@@ -23,8 +25,9 @@ impl Default for Config {
             api_url: "https://api.openai.com/v1/".to_string(),
             api_key: String::new(),
             model: "gpt-4o-mini".to_string(),
-            output: None,
+            generated: None,
             last_analysis: None,
+            output: None,
         }
     }
 }
@@ -127,8 +130,9 @@ pub async fn configure_interactive(project_dir: &Path, global: bool) -> Result<(
         api_url,
         api_key,
         model: models[model_index].clone(),
-        output: current_config.output,
+        generated: current_config.generated,
         last_analysis: current_config.last_analysis,
+        output: current_config.output,
     };
     if global {
         new_config.save_global()?;

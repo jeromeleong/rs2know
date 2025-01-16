@@ -35,41 +35,30 @@ struct Model {
 }
 /// 從 API 獲取可用的模型列表
 pub async fn get_available_models(api_url: &str, api_key: &str) -> Result<Vec<String>> {
-    let endpoint = format!("{}/models", api_url.trim_end_matches('/'));
-    debug!("獲取可用模型列表：{}", endpoint);
-    let client = Client::new();
-    let resp = match client
-        .get(&endpoint)
-        .header("Authorization", format!("Bearer {}", api_key))
-        .timeout(Duration::from_secs(10))
-        .send()
-        .await
-    {
-        Ok(resp) => resp,
-        Err(e) => {
-            warn!("無法獲取模型列表：{}", e);
-            return Ok(DEFAULT_MODELS.iter().map(|&s| s.to_string()).collect());
-        }
-    };
-    if !resp.status().is_success() {
-        warn!("獲取模型列表失敗：{}", resp.status());
-        return Ok(DEFAULT_MODELS.iter().map(|&s| s.to_string()).collect());
-    }
-    match resp.json::<ModelResponse>().await {
-        Ok(model_resp) => {
-            let models: Vec<String> = model_resp.data.into_iter().map(|m| m.id).collect();
-            if models.is_empty() {
-                warn!("未找到可用的 GPT 模型，使用預設列表");
-                Ok(DEFAULT_MODELS.iter().map(|&s| s.to_string()).collect())
-            } else {
-                Ok(models)
+    crate::utils::retry(|| {
+        let api_url = api_url.to_string();
+        let api_key = api_key.to_string();
+        tokio::spawn(async move {
+            let client = Client::new();
+            let response = client
+                .get(format!("{}models", api_url))
+                .header("Authorization", format!("Bearer {}", api_key))
+                .send()
+                .await?;
+
+            if !response.status().is_success() {
+                return Err(anyhow!("Failed to get models: {}", response.status()));
             }
-        }
-        Err(e) => {
-            warn!("解析模型列表失敗：{}", e);
-            Ok(DEFAULT_MODELS.iter().map(|&s| s.to_string()).collect())
-        }
-    }
+
+            let model_response: ModelResponse = response.json().await?;
+            Ok(model_response
+                .data
+                .into_iter()
+                .map(|m| m.id)
+                .collect::<Vec<_>>())
+        })
+    })
+    .await
 }
 pub async fn do_ai_analysis_with_retry(
     api_url: &str,
@@ -78,33 +67,19 @@ pub async fn do_ai_analysis_with_retry(
     code: &str,
     file_path: &str,
 ) -> Result<Option<AIAnalysis>> {
-    let mut retries = 0;
-    while retries < MAX_RETRIES {
-        match do_ai_analysis(api_url, api_key, model, code).await {
-            Ok(analysis) => return Ok(Some(analysis)),
-            Err(e) => {
-                if retries < MAX_RETRIES - 1 {
-                    let delay = RETRY_DELAY_MS * (retries as u64 + 1);
-                    warn!(
-                        "AI 分析失敗 (重試 {}/{}): {} - {}",
-                        retries + 1,
-                        MAX_RETRIES,
-                        file_path,
-                        e
-                    );
-                    tokio::time::sleep(Duration::from_millis(delay)).await;
-                    retries += 1;
-                } else {
-                    error!(
-                        "AI 分析在重試{}次後仍然失敗：{} - {}",
-                        MAX_RETRIES, file_path, e
-                    );
-                    return Ok(None);
-                }
+    crate::utils::retry(|| {
+        let api_url = api_url.to_string();
+        let api_key = api_key.to_string();
+        let model = model.to_string();
+        let code = code.to_string();
+        tokio::spawn(async move {
+            match do_ai_analysis(&api_url, &api_key, &model, &code).await {
+                Ok(analysis) => Ok(Some(analysis)),
+                Err(e) => Err(anyhow!(e)),
             }
-        }
-    }
-    Ok(None)
+        })
+    })
+    .await
 }
 async fn do_ai_analysis(
     api_url: &str,
@@ -198,29 +173,20 @@ pub async fn generate_project_summary_with_retry(
     api_key: &str,
     model: &str,
 ) -> Result<Option<ProjectSummary>> {
-    let mut retries = 0;
-    while retries < MAX_RETRIES {
-        match generate_project_summary(analyses, api_url, api_key, model).await {
-            Ok(summary) => return Ok(Some(summary)),
-            Err(e) => {
-                if retries < MAX_RETRIES - 1 {
-                    let delay = RETRY_DELAY_MS * (retries as u64 + 1);
-                    warn!(
-                        "專案總結生成失敗 (重試 {}/{}): {}",
-                        retries + 1,
-                        MAX_RETRIES,
-                        e
-                    );
-                    tokio::time::sleep(Duration::from_millis(delay)).await;
-                    retries += 1;
-                } else {
-                    error!("專案總結在重試{}次後仍然失敗：{}", MAX_RETRIES, e);
-                    return Ok(None);
-                }
+    let analyses = analyses.to_vec();
+    crate::utils::retry(|| {
+        let analyses = analyses.clone();
+        let api_url = api_url.to_string();
+        let api_key = api_key.to_string();
+        let model = model.to_string();
+        tokio::spawn(async move {
+            match generate_project_summary(&analyses, &api_url, &api_key, &model).await {
+                Ok(summary) => Ok(Some(summary)),
+                Err(e) => Err(anyhow!(e)),
             }
-        }
-    }
-    Ok(None)
+        })
+    })
+    .await
 }
 async fn generate_project_summary(
     analyses: &[FileAnalysis],

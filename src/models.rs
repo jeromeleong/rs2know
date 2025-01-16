@@ -25,6 +25,7 @@ pub struct FileAnalysis {
     pub blank_lines: usize,
     pub comment_lines: usize,
     pub code_lines: usize,
+    pub code_hash: String,
     pub ai_analysis: Option<AIAnalysis>,
 }
 #[derive(Debug, Serialize, Deserialize, Clone)]

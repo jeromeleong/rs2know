@@ -172,20 +172,6 @@ pub fn init_project(project_dir: &Path) -> Result<()> {
     }
     Ok(())
 }
-pub fn update_config(project_dir: &Path, updates: Config, global: bool) -> Result<()> {
-    if global {
-        updates.save_global()?;
-        info!("已更新全局配置");
-    } else {
-        let config_path = project_dir.join(CONFIG_FILE);
-        if !config_path.exists() {
-            return Err(anyhow!("配置文件不存在，請先執行 pj init"));
-        }
-        updates.save(project_dir)?;
-        info!("已更新項目配置");
-    }
-    Ok(())
-}
 pub fn get_effective_config(project_dir: &Path) -> Result<Config> {
     Config::load(project_dir)
 }

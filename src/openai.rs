@@ -3,16 +3,7 @@ use anyhow::{anyhow, Result};
 use reqwest::Client;
 use serde::Deserialize;
 use std::time::Duration;
-use tracing::{debug, error, info, warn};
-const MAX_RETRIES: u32 = 5;
-const RETRY_DELAY_MS: u64 = 1000;
-const DEFAULT_MODELS: &[&str] = &[
-    "gpt-4o",
-    "gpt-4o-mini",
-    "claude-3-5-sonnet",
-    "claude-3-5-haiku",
-    "gemini-2.0-flash-exp",
-];
+use tracing::{debug, error, info};
 #[derive(Deserialize)]
 struct ChatResponse {
     choices: Vec<Choice>,
@@ -64,8 +55,7 @@ pub async fn do_ai_analysis_with_retry(
     api_url: &str,
     api_key: &str,
     model: &str,
-    code: &str,
-    file_path: &str,
+    code: &str
 ) -> Result<Option<AIAnalysis>> {
     crate::utils::retry(|| {
         let api_url = api_url.to_string();

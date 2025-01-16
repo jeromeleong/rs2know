@@ -49,28 +49,6 @@ pub fn analyze_code(content: &str) -> FileStats {
     stats
 }
 
-/// Check if a file needs reanalysis based on its current content hash
-pub fn needs_reanalysis(
-    file_path: &str,
-    current_hash: &str,
-    stored_analysis: &Option<ProjectAnalysis>,
-) -> bool {
-    match stored_analysis {
-        None => true,
-        Some(analysis) => {
-            if let Some(file_analysis) = analysis
-                .file_analyses
-                .iter()
-                .find(|fa| fa.file_path == file_path)
-            {
-                file_analysis.code_hash != current_hash
-            } else {
-                true
-            }
-        }
-    }
-}
-
 /// Update the analysis report for the project
 pub async fn update_report(
     project_path: &Path,

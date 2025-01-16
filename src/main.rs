@@ -8,7 +8,7 @@ use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use tracing::{debug, error, info, warn};
+use tracing::{error, info};
 use tracing_subscriber::{fmt::format::FmtSpan, EnvFilter};
 use crate::models::{FileAnalysis, ProjectAnalysis, ProjectSummary};
 #[derive(Parser, Debug, Clone)]
@@ -212,8 +212,7 @@ pub async fn perform_analysis(
                 api_url,
                 api_key,
                 model,
-                &content,
-                &relative_path,
+                &content
             )
             .await
             {
